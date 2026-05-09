@@ -1,0 +1,15 @@
+# Prompt para nanobanana: BERLIOZ (gato mascota)
+
+## Foto de referencia
+[PEGAR FOTO DE BERLIOZ AQUÍ]
+
+## Prompt:
+pixel art cat character sprite, front view, tuxedo cat black and white, elegant pose, medium size, cute but sophisticated cat face, white chest and paws, black body, 16-bit pixel art style, transparent background, game pet sprite
+
+## Tamaño sugerido:
+32x32 pixels
+
+## Notas:
+- Es blanco y negro (tuxedo cat)
+- Personalidad: elegante, un poco snob
+- Postura distinguida

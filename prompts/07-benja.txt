@@ -1,0 +1,16 @@
+# Prompt para nanobanana: BENJA (NPC + boss final)
+
+## Foto de referencia
+[PEGAR FOTO DE BENJA AQUÍ]
+
+## Prompt:
+pixel art character sprite, front view, completely black silhouette character, only visible outline, dark figure, mysterious expression barely visible, 16-bit pixel art style, transparent background, game boss character, menacing but also funny
+
+## Tamaño sugerido:
+32x32 pixels
+
+## Notas:
+- El sprite es TODO NEGRO (es un chiste interno)
+- Se ve una silueta oscura
+- Es el boss final
+- Frase: "estoy crudo", "exótico"

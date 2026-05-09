@@ -1,0 +1,15 @@
+# Prompt para nanobanana: CAMILA (NPC prima)
+
+## Foto de referencia
+[PEGAR FOTO DE CAMILA AQUÍ]
+
+## Prompt:
+pixel art character sprite, front view, young woman, casual outfit, friendly expression, cousin energy, 16-bit pixel art style, transparent background, game NPC sprite, warm smile, relaxed pose
+
+## Tamaño sugerido:
+32x32 pixels
+
+## Notas:
+- Es la prima de Valeria
+- Está en ALLARIA (oficina)
+- Personalidad: amigable, directa

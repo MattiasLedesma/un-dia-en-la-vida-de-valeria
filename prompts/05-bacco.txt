@@ -1,0 +1,15 @@
+# Prompt para nanobanana: BACCO (perro mascota)
+
+## Foto de referencia
+[PEGAR FOTO DE BACCO AQUÍ]
+
+## Prompt:
+pixel art dog character sprite, front view, german shepherd dog, brown and black fur, alert ears up, happy open mouth tongue out, medium-large size, 16-bit pixel art style, transparent background, game pet sprite, energetic pose
+
+## Tamaño sugerido:
+32x32 pixels
+
+## Notas:
+- Es un pastor alemán (marrón y negro)
+- Personalidad: hiperactivo, feliz, protector
+- Cola moviéndose idealmente

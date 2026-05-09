@@ -1,0 +1,15 @@
+# Prompt para nanobanana: TIZIANO (NPC amigo)
+
+## Foto de referencia
+[PEGAR FOTO DE TIZIANO AQUÍ]
+
+## Prompt:
+pixel art character sprite, front view, young man with styled hair and a prominent mustache, confident expression, wearing a fashionable outfit, holding a small mirror, 16-bit pixel art style, transparent background, game NPC sprite, vain personality
+
+## Tamaño sugerido:
+32x32 pixels
+
+## Notas:
+- TIENE BIGOTE (no jopo, bigote)
+- Personalidad: coqueto, confiado
+- Está en UADE

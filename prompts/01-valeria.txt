@@ -1,0 +1,15 @@
+# Prompt para nanobanana: VALERIA (personaje jugable)
+
+## Foto de referencia
+[PEGAR FOTO DE VALERIA AQUÍ]
+
+## Prompt:
+pixel art character sprite, full body front view, chibi style, young woman with long straight brown hair, wearing a pink t-shirt and blue jeans, cute expression, video game character, 16-bit style, transparent background, centered, game sprite sheet style, vibrant colors, soft lighting
+
+## Tamaño sugerido:
+32x32 pixels por frame (o 64x64 si querés más detalle)
+
+## Notas:
+- El sprite se ve desde arriba (top-down perspective)
+- Necesita verse bien en tamaño chico
+- Colores: rosa (#ff69b4), celeste claro, pelo marrón

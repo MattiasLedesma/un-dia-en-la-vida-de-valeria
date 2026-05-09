@@ -1,0 +1,15 @@
+# Prompt para nanobanana: RAMA & SOL (NPCs pareja)
+
+## Foto de referencia
+[PEGAR FOTO DE RAMA Y SOL AQUÍ]
+
+## Prompt:
+pixel art character sprites, two characters side by side holding hands, a young man and a young woman, couple in love, 16-bit pixel art style, transparent background, game NPC sprites, cute couple, walking together
+
+## Tamaño sugerido:
+32x32 pixels (16x32 cada uno, o 32x32 juntos)
+
+## Notas:
+- Son la típica pareja amiga
+- Van de la mano siempre
+- Están en ALLARIA

@@ -1,0 +1,15 @@
+# Prompt para nanobanana: RUFINO (gato mascota)
+
+## Foto de referencia
+[PEGAR FOTO DE RUFINO AQUÍ]
+
+## Prompt:
+pixel art cat character sprite, front view, gray tabby cat with black stripes, medium size, cute cat face, standing on four legs, tail up, 16-bit pixel art style, transparent background, game pet sprite, vibrant pixel colors, soft shadows
+
+## Tamaño sugerido:
+32x32 pixels
+
+## Notas:
+- Es un gato gris con rayas negras (atigrado)
+- Personalidad: compañero, un poco gruñón
+- Se ve de perfil o frente en el mapa

@@ -1,0 +1,15 @@
+# Prompt para nanobanana: MATIAS (NPC final)
+
+## Foto de referencia
+[PEGAR FOTO DE MATIAS AQUÍ]
+
+## Prompt:
+pixel art character sprite, full body front view, chibi style, young man with short dark hair, wearing glasses and a blue hoodie, sitting at a computer desk, nerdy cute look, 16-bit pixel art, transparent background, centered, game character, relaxed expression
+
+## Tamaño sugerido:
+32x32 pixels
+
+## Notas:
+- Aparece sentado en la escena final
+- Tiene que verse "gordo compu" pero tierno
+- La laptop/PC puede ser parte del sprite

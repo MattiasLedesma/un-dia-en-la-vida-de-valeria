@@ -1,0 +1,15 @@
+# Prompt para nanobanana: ZOMBIE (enemigo genérico)
+
+## Foto de referencia
+[N/A - es genérico]
+
+## Prompt:
+pixel art zombie character sprite, front view, rotting corpse, torn clothes, greenish-gray skin, blank white eyes, shambling pose, 16-bit pixel art style, transparent background, game enemy sprite, undead, funny not scary
+
+## Tamaño sugerido:
+32x32 pixels
+
+## Notas:
+- Hay diferentes variantes: calle, oficinista, estudiante
+- Este es el base
+- Tono: cómico, no terrorífico
