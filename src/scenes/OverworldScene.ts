@@ -5,50 +5,34 @@ import { getDialogue } from '../data/dialogues';
 import { DialogueManager } from '../systems/DialogueManager';
 import { musicManager } from '../systems/MusicManager';
 import type { GameState } from '../systems/BattleSystem';
+import { addPetToParty } from '../systems/BattleSystem';
 
 type ZoneConfig = 'guernica' | 'uade';
 
 const ZONE_CONFIGS: Record<ZoneConfig, {
-  map: number[][];
-  music: string;
-  encounters: { x: number; y: number; zombie: string; petJoin?: string; dialogue: string }[];
-  npcs: { id: string; tx: number; ty: number; color: number; color2: number; dialogueScene: string; dialogueKey: string; encounter?: string }[];
-  transitions: { tx: number; ty: number; target: string; targetX: number; targetY: number }[];
-  encounterTiles: { x: number; y: number; zombie: string }[];
+  map: number[][]; music: string; encounterTiles: { x: number; y: number; zombie: string }[];
+  npcs: { id: string; tx: number; ty: number; color: number; color2: number; dialogueScene: string; dialogueKey: string }[];
+  transitions: { tx: number; ty: number; target: string; targetX: number; targetY: number; label?: string }[];
   encounterDialogue: string;
 }> = {
   guernica: {
-    map: MAP_GUERNICA,
-    music: 'overworld',
-    encounters: [
-      { x: 9, y: 3, zombie: 'walker', petJoin: 'rufino', dialogue: 'rufino_encounter' },
-    ],
+    map: MAP_GUERNICA, music: 'overworld',
+    encounterTiles: [{ x: 9, y: 3, zombie: 'walker' }],
     npcs: [],
-    transitions: [
-      { tx: 12, ty: 18, target: 'LoadingScene', targetX: 0, targetY: 0 },
-    ],
-    encounterTiles: [
-      { x: 9, y: 3, zombie: 'walker' },
-    ],
+    transitions: [{ tx: 12, ty: 18, target: 'LoadingScene', targetX: 0, targetY: 0 }],
     encounterDialogue: 'rufino_encounter',
   },
   uade: {
-    map: getMapUADE(),
-    music: 'uade',
-    encounters: [
-      { x: 6, y: 8, zombie: 'student_zombie', dialogue: 'bacco_encounter' },
-      { x: 16, y: 10, zombie: 'student_zombie', petJoin: 'bacco', dialogue: 'bacco_encounter' },
+    map: getMapUADE(), music: 'uade',
+    encounterTiles: [
+      { x: 6, y: 10, zombie: 'student_zombie' },
+      { x: 18, y: 12, zombie: 'student_zombie' },
+      { x: 12, y: 15, zombie: 'benja' },
     ],
     npcs: [
       { id: 'tiziano', tx: 12, ty: 5, color: 0xddaa66, color2: 0x000000, dialogueScene: 'tiziano_uade', dialogueKey: 'start' },
     ],
-    transitions: [
-      { tx: 12, ty: 18, target: 'FinalScene', targetX: 0, targetY: 0 },
-    ],
-    encounterTiles: [
-      { x: 6, y: 8, zombie: 'student_zombie' },
-      { x: 16, y: 10, zombie: 'student_zombie' },
-    ],
+    transitions: [{ tx: 12, ty: 18, target: 'FinalScene', targetX: 0, targetY: 0 }],
     encounterDialogue: 'bacco_encounter',
   },
 };
@@ -63,13 +47,15 @@ export class OverworldScene extends Phaser.Scene {
   private isInDialogue = false;
   private zone!: ZoneConfig;
   private config!: typeof ZONE_CONFIGS[ZoneConfig];
-  private npcs: { gfx: Phaser.GameObjects.Graphics; tx: number; ty: number; id: string }[] = [];
-  private encounterDone = false;
-  private pendingBattle: string | null = null;
-  private usedEncounters = new Set<string>();
-  private npcDialogues = new Map<string, boolean>();
+  private npcSprites: { id: string; gfx: Phaser.GameObjects.Graphics; tx: number; ty: number; dialogueScene: string; dialogueKey: string }[] = [];
   private encounterTilesTriggered = new Set<string>();
   private activePetSprites: Phaser.GameObjects.Graphics[] = [];
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private wasd!: Record<string, Phaser.Input.Keyboard.Key>;
+  private space!: Phaser.Input.Keyboard.Key;
+  private firstEncounterDone = false;
+  private tizianoTalked = false;
+  private benjaTriggered = false;
 
   constructor() {
     super({ key: 'OverworldScene' });
@@ -80,22 +66,25 @@ export class OverworldScene extends Phaser.Scene {
     this.config = ZONE_CONFIGS[this.zone];
     this.playerX = data.playerX ?? (4 * TILE);
     this.playerY = data.playerY ?? (1 * TILE);
-    this.encounterDone = false;
-    this.pendingBattle = null;
-    this.npcs = [];
-    this.activePetSprites = [];
-    this.usedEncounters.clear();
-    this.npcDialogues.clear();
     this.encounterTilesTriggered.clear();
+    this.npcSprites = [];
+    this.activePetSprites = [];
+    this.firstEncounterDone = false;
+    this.tizianoTalked = false;
+    this.benjaTriggered = false;
   }
 
   create(): void {
     this.state = this.registry.get('gameState') as GameState;
     if (!this.state) {
-      this.state = { party: [], atunCount: 3, hasBackpack: true, defeatedBenja: false, collectedKey: false, currentPetIndex: 0, flags: {}, playerX: 0, playerY: 0, zone: 'guernica', completedTutorial: false };
+      this.state = { party: [], atunCount: 3, hasBackpack: true, defeatedBenja: false, collectedKey: false, currentPetIndex: 0, flags: {}, playerX: 0, playerY: 0, zone: 'guernica', completedTutorial: true };
       this.registry.set('gameState', this.state);
     }
     this.state.zone = this.zone === 'guernica' ? 'guernica' : 'uade';
+
+    this.cursors = this.input.keyboard!.createCursorKeys();
+    this.wasd = this.input.keyboard!.addKeys('W,A,S,D') as Record<string, Phaser.Input.Keyboard.Key>;
+    this.space = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
     musicManager.start(this.config.music);
     this.cameras.main.setBackgroundColor('#000000');
@@ -121,58 +110,46 @@ export class OverworldScene extends Phaser.Scene {
       const g = this.add.graphics();
       this.drawNPC(g, n.color, n.color2, n.id);
       g.setPosition(n.tx * TILE, n.ty * TILE);
-      this.npcs.push({ gfx: g, tx: n.tx, ty: n.ty, id: n.id });
+      this.npcSprites.push({ gfx: g, ...n });
     });
 
-    this.state.party.forEach(p => {
-      if (p.isActive || true) {
-        const g = this.add.graphics();
-        this.drawPetSprite(g, p.petId);
-        g.setPosition(this.playerX - 20 + this.activePetSprites.length * 16, this.playerY - 24);
-        this.activePetSprites.push(g);
-      }
+    this.state.party.forEach((_p, i) => {
+      const g = this.add.graphics();
+      this.drawPetMini(g, _p.petId);
+      g.setPosition(this.playerX - 20 + i * 16, this.playerY - 28);
+      this.activePetSprites.push(g);
     });
 
     this.dialogue = new DialogueManager(this);
 
     if (this.zone === 'guernica' && !this.state.completedTutorial) {
-      this.time.delayedCall(500, () => this.triggerFirstEncounter());
+      this.time.delayedCall(500, () => this.triggerTutorial());
     }
   }
 
-  private triggerFirstEncounter(): void {
-    if (this.encounterDone || this.state.completedTutorial) return;
-    const enc = this.config.encounters[0];
-    if (!enc) return;
+  private triggerTutorial(): void {
     this.isInDialogue = true;
     this.canMove = false;
-    const line = getDialogue(enc.dialogue, 'start');
+    const line = getDialogue('rufino_encounter', 'start');
     if (line) {
-      this.dialogue.show(line, (action) => this.handleEncounterAction(action, enc));
-    }
-  }
-
-  private handleEncounterAction(action: string | undefined, enc: typeof ZONE_CONFIGS[ZoneConfig]['encounters'][0]): void {
-    if (action === 'battle_rufino' || action === 'battle_berlioz' || action === 'battle_bacco') {
-    } else if (action === 'battle' || action === `battle_${enc.petJoin || 'rufino'}`) {
-      this.pendingBattle = enc.zombie;
-      this.encounterDone = true;
-      this.state.completedTutorial = true;
-      this.state.flags[`captured_${enc.petJoin || 'rufino'}`] = true;
-      musicManager.stop();
-      this.scene.launch('BattleScene', {
-        zombie: enc.zombie,
-        petJoin: enc.petJoin || null,
-        returnScene: 'OverworldScene',
-        returnData: { zone: this.zone, playerX: this.playerX, playerY: this.playerY },
+      this.dialogue.show(line, (action) => {
+        if (action === 'battle_rufino' || action === 'battle') {
+          this.firstEncounterDone = true;
+          this.state.completedTutorial = true;
+          this.state.flags.captured_rufino = true;
+          addPetToParty(this.state, 'rufino');
+          musicManager.stop();
+          this.scene.launch('BattleScene', {
+            zombie: 'walker', petJoin: 'rufino',
+            returnScene: 'OverworldScene', returnData: { zone: this.zone, playerX: this.playerX, playerY: this.playerY },
+          });
+          this.scene.pause();
+        } else {
+          this.isInDialogue = false;
+          this.canMove = true;
+        }
       });
-      this.scene.pause();
-      return;
     }
-
-    this.state.completedTutorial = true;
-    this.canMove = true;
-    this.isInDialogue = false;
   }
 
   private drawPlayer(): void {
@@ -193,37 +170,26 @@ export class OverworldScene extends Phaser.Scene {
     p.fillStyle(0x000000, 1);
     p.fillCircle(-3, -9, 1.5);
     p.fillCircle(3, -9, 1.5);
-    p.fillStyle(0x3a3a8a, 1);
-    p.fillRect(-1, -12, 2, 2);
     p.setPosition(this.playerX, this.playerY);
   }
 
-  private drawNPC(g: Phaser.GameObjects.Graphics, color: number, color2: number, id: string): void {
+  private drawNPC(g: Phaser.GameObjects.Graphics, _color: number, _color2: number, id: string): void {
     g.fillStyle(0xffccaa, 1);
     g.fillCircle(0, -8, 7);
-    if (id === 'benja') {
+    if (id === 'tiziano') {
+      g.fillStyle(0x4488cc, 1);
+      g.fillRoundedRect(-7, -1, 14, 20, 2);
       g.fillStyle(0x000000, 1);
-      g.fillCircle(0, -8, 7);
-      g.fillStyle(0x111111, 1);
-      g.fillRoundedRect(-7, -1, 14, 20, 2);
-      g.fillStyle(0xffffff, 0.3);
-      g.fillCircle(0, -8, 1);
-    } else {
-      g.fillStyle(color || 0x4488cc, 1);
-      g.fillRoundedRect(-7, -1, 14, 20, 2);
-      if (id === 'tiziano') {
-        g.fillStyle(0x000000, 1);
-        g.fillRect(-4, -4, 8, 3);
-        g.fillStyle(0x333333, 1);
-        g.fillRect(-2, 0, 4, 1);
-      }
+      g.fillRect(-4, -4, 8, 3);
+      g.fillStyle(0x333333, 1);
+      g.fillRect(-2, 0, 4, 1);
     }
     g.fillStyle(0x000000, 1);
     g.fillCircle(-3, -9, 1.5);
     g.fillCircle(3, -9, 1.5);
   }
 
-  private drawPetSprite(g: Phaser.GameObjects.Graphics, petId: string): void {
+  private drawPetMini(g: Phaser.GameObjects.Graphics, petId: string): void {
     const colors: Record<string, number> = { rufino: 0x888888, berlioz: 0xeeeeee, bacco: 0x8b4513 };
     const colors2: Record<string, number> = { rufino: 0x333333, berlioz: 0x111111, bacco: 0x000000 };
     const c = colors[petId] || 0x888888;
@@ -239,22 +205,22 @@ export class OverworldScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     this.dialogue.update(delta);
 
-    if (!this.canMove || this.isInDialogue) return;
+    if (this.isInDialogue) {
+      if (Phaser.Input.Keyboard.JustDown(this.space)) {
+        this.dialogue.advance();
+      }
+      return;
+    }
 
-    const cursors = this.input.keyboard!.createCursorKeys();
-    const wasd = this.input.keyboard!.addKeys('W,A,S,D') as Record<string, Phaser.Input.Keyboard.Key>;
-    const space = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    if (!this.canMove) return;
 
     let dx = 0, dy = 0;
-    if (cursors.left.isDown || wasd.A.isDown) dx = -1;
-    else if (cursors.right.isDown || wasd.D.isDown) dx = 1;
-    if (cursors.up.isDown || wasd.W.isDown) dy = -1;
-    else if (cursors.down.isDown || wasd.S.isDown) dy = 1;
+    if (this.cursors.left.isDown || this.wasd.A.isDown) dx = -1;
+    else if (this.cursors.right.isDown || this.wasd.D.isDown) dx = 1;
+    if (this.cursors.up.isDown || this.wasd.W.isDown) dy = -1;
+    else if (this.cursors.down.isDown || this.wasd.S.isDown) dy = 1;
 
-    if (dx !== 0 && dy !== 0) {
-      if (Math.random() < 0.5) dy = 0;
-      else dx = 0;
-    }
+    if (dx !== 0 && dy !== 0) { if (Math.random() < 0.5) dy = 0; else dx = 0; }
 
     if (dx !== 0 || dy !== 0) {
       const speed = 2;
@@ -265,37 +231,31 @@ export class OverworldScene extends Phaser.Scene {
       const map = this.config.map;
       if (tileY >= 0 && tileY < map.length && tileX >= 0 && tileX < map[0].length) {
         if (!COLLISION_TILES.has(map[tileY][tileX])) {
-          this.playerX = nx;
-          this.playerY = ny;
+          this.playerX = nx; this.playerY = ny;
           this.updatePlayerSprite();
         }
-      }
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(space)) {
-      if (this.isInDialogue) {
-        this.dialogue.advance();
-      } else {
-        this.checkInteraction();
       }
     }
 
     this.activePetSprites.forEach((g, i) => {
       g.setPosition(this.playerX - 20 + i * 16, this.playerY - 28);
     });
+
+    if (Phaser.Input.Keyboard.JustDown(this.space)) {
+      this.checkInteractions();
+    }
   }
 
-  private checkInteraction(): void {
-    const threshold = TILE * 1.5;
+  private checkInteractions(): void {
+    const thresh = TILE * 1.5;
 
-    for (const n of this.npcs) {
+    for (const n of this.npcSprites) {
       const dist = Math.abs(this.playerX - n.tx * TILE) + Math.abs(this.playerY - n.ty * TILE);
-      if (dist < threshold) {
-        const npcData = this.config.npcs.find(c => c.id === n.id);
-        if (!npcData) continue;
+      if (dist < thresh) {
         this.isInDialogue = true;
         this.canMove = false;
-        const line = getDialogue(npcData.dialogueScene, npcData.dialogueKey);
+        if (n.id === 'tiziano') this.tizianoTalked = true;
+        const line = getDialogue(n.dialogueScene, n.dialogueKey);
         if (line) {
           this.dialogue.show(line, (action) => {
             this.isInDialogue = false;
@@ -307,16 +267,14 @@ export class OverworldScene extends Phaser.Scene {
     }
 
     for (const t of this.config.transitions) {
-      const tx = t.tx * TILE;
-      const ty = t.ty * TILE;
-      const dist = Math.abs(this.playerX - tx) + Math.abs(this.playerY - ty);
+      const dist = Math.abs(this.playerX - t.tx * TILE) + Math.abs(this.playerY - t.ty * TILE);
       if (dist < TILE) {
         musicManager.stop();
         if (t.target === 'LoadingScene') {
           this.scene.start('LoadingScene', {
-            nextScene: 'OfficeScene',
-            type: this.zone === 'guernica' ? 'tren' : 'subte',
+            nextScene: 'OfficeScene', type: 'tren',
             targetX: t.targetX, targetY: t.targetY,
+            zone: '',
           });
         } else if (t.target === 'FinalScene') {
           this.scene.start('FinalScene', {});
@@ -326,25 +284,26 @@ export class OverworldScene extends Phaser.Scene {
     }
 
     for (const et of this.config.encounterTiles) {
-      const ex = et.x * TILE;
-      const ey = et.y * TILE;
-      const dist = Math.abs(this.playerX - ex) + Math.abs(this.playerY - ey);
-      if (dist < TILE && !this.encounterTilesTriggered.has(`${et.x},${et.y}`)) {
-        this.encounterTilesTriggered.add(`${et.x},${et.y}`);
+      const dist = Math.abs(this.playerX - et.x * TILE) + Math.abs(this.playerY - et.y * TILE);
+      const key = `${et.x},${et.y}`;
+      if (dist < TILE && !this.encounterTilesTriggered.has(key)) {
+        this.encounterTilesTriggered.add(key);
         this.isInDialogue = true;
         this.canMove = false;
+
+        if (et.zombie === 'benja') {
+          if (!this.benjaTriggered) this.triggerBenjaFight();
+          return;
+        }
+
         const line = getDialogue(this.config.encounterDialogue, 'start');
         if (line) {
           this.dialogue.show(line, (action) => {
-            if (action === 'battle' || action === `battle_${et.zombie}`) {
-              this.pendingBattle = et.zombie;
-              const encPet = this.config.encounters.find(e => e.x === et.x && e.y === et.y);
+            if (action === 'battle' || action.includes('battle')) {
               musicManager.stop();
               this.scene.launch('BattleScene', {
-                zombie: et.zombie,
-                petJoin: encPet?.petJoin || null,
-                returnScene: 'OverworldScene',
-                returnData: { zone: this.zone, playerX: this.playerX, playerY: this.playerY },
+                zombie: et.zombie, petJoin: 'bacco',
+                returnScene: 'OverworldScene', returnData: { zone: this.zone, playerX: this.playerX, playerY: this.playerY },
               });
               this.scene.pause();
             } else {
@@ -355,6 +314,48 @@ export class OverworldScene extends Phaser.Scene {
         }
         return;
       }
+    }
+
+    if (this.zone === 'uade' && this.encounterTilesTriggered.size >= 2 && !this.benjaTriggered) {
+      this.triggerBenjaFight();
+    }
+  }
+
+  private triggerBenjaFight(): void {
+    this.benjaTriggered = true;
+    this.isInDialogue = true;
+    this.canMove = false;
+    const line = getDialogue('benja_final_boss', 'start');
+    if (line) {
+      this.dialogue.show(line, (action) => {
+        if (action === 'battle_benja' || action === 'benja_fight') {
+          musicManager.stop();
+          this.scene.launch('BattleScene', {
+            zombie: 'benja', petJoin: null,
+            returnScene: 'OverworldScene', returnData: { zone: this.zone, playerX: this.playerX, playerY: this.playerY },
+            isBoss: true,
+          });
+          this.scene.pause();
+        } else {
+          const l2 = getDialogue('benja_final_boss', action);
+          if (l2) {
+            this.dialogue.show(l2, (act) => {
+              if (act === 'battle_benja' || act === 'benja_fight') {
+                musicManager.stop();
+                this.scene.launch('BattleScene', {
+                  zombie: 'benja', petJoin: null,
+                  returnScene: 'OverworldScene', returnData: { zone: this.zone, playerX: this.playerX, playerY: this.playerY },
+                  isBoss: true,
+                });
+                this.scene.pause();
+              }
+            });
+          } else {
+            this.canMove = true;
+            this.isInDialogue = false;
+          }
+        }
+      });
     }
   }
 }

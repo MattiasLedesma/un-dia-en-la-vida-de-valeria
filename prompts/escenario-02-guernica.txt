@@ -1,0 +1,13 @@
+# Prompt para nanobanana: GUERNICA (barrio exterior)
+
+## Prompt:
+pixel art game background, top-down suburban neighborhood, streets with trees, grass, sidewalks, small houses, Buenos Aires neighborhood vibe, 16-bit tileable game background, green grass, gray sidewalks, colorful houses, 32x32 pixel tileset
+
+## Tamaño:
+Tileset 32x32 tiles
+
+## Notas:
+- Es el barrio de Guernica, Buenos Aires
+- Tiene pasto, árboles, veredas, casas bajas
+- Tono: tranquilo, soleado
+- Referencia: barrio suburbano argentino

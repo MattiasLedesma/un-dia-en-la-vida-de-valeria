@@ -8,16 +8,18 @@ export class LoadingScene extends Phaser.Scene {
   private targetY = 0;
   private timer = 0;
   private duration = 3000;
+  private zone = '';
 
   constructor() {
     super({ key: 'LoadingScene' });
   }
 
-  init(data: { nextScene: string; type: string; targetX: number; targetY: number }): void {
+  init(data: { nextScene?: string; type?: string; targetX?: number; targetY?: number; zone?: string }): void {
     this.nextScene = data.nextScene || 'OfficeScene';
     this.type = (data.type as 'tren' | 'subte') || 'tren';
-    this.targetX = data.targetX || 4 * 32;
-    this.targetY = data.targetY || 32;
+    this.targetX = data.targetX ?? 4 * 32;
+    this.targetY = data.targetY ?? 32;
+    this.zone = data.zone || '';
     this.timer = 0;
   }
 
@@ -25,26 +27,20 @@ export class LoadingScene extends Phaser.Scene {
     musicManager.start('loading');
     this.cameras.main.setBackgroundColor('#000000');
 
-    if (this.type === 'tren') {
-      this.drawTren();
-    } else {
-      this.drawSubte();
-    }
+    if (this.type === 'tren') this.drawTren();
+    else this.drawSubte();
 
     this.add.text(400, 520, 'Presioná ESPACIO para saltar', {
       fontFamily: 'monospace', fontSize: '11px', color: '#444466',
     }).setOrigin(0.5);
 
-    this.input.keyboard?.on('keydown-SPACE', () => {
-      this.finishLoading();
-    });
+    this.input.keyboard?.once('keydown-SPACE', () => this.finishLoading());
   }
 
   private drawTren(): void {
     this.add.text(400, 80, '🚂 VIAJANDO EN TREN ROCA', {
       fontFamily: 'monospace', fontSize: '24px', color: '#ff8800',
     }).setOrigin(0.5);
-
     this.add.text(400, 120, 'Constitución - Temperley...', {
       fontFamily: 'monospace', fontSize: '14px', color: '#888888',
     }).setOrigin(0.5);
@@ -64,20 +60,16 @@ export class LoadingScene extends Phaser.Scene {
       g.fillRect(165 + i * 140, 265, 30, 30);
     }
 
-    const text = this.add.text(400, 450, '🧟 "Braaaaains... perdón, ¿éste va a Constitución?"', {
+    const t = this.add.text(400, 450, '🧟 "Braaaaains... perdón, ¿éste va a Constitución?"', {
       fontFamily: 'monospace', fontSize: '14px', color: '#66aa66',
     }).setOrigin(0.5);
-
-    this.tweens.add({
-      targets: text, alpha: 0.3, duration: 1500, yoyo: true, repeat: -1,
-    });
+    this.tweens.add({ targets: t, alpha: 0.3, duration: 1500, yoyo: true, repeat: -1 });
   }
 
   private drawSubte(): void {
     this.add.text(400, 80, '🚇 SUBTE D', {
       fontFamily: 'monospace', fontSize: '24px', color: '#00aaff',
     }).setOrigin(0.5);
-
     this.add.text(400, 120, 'Catedral - Congreso - Facultad de Medicina...', {
       fontFamily: 'monospace', fontSize: '14px', color: '#888888',
     }).setOrigin(0.5);
@@ -92,31 +84,25 @@ export class LoadingScene extends Phaser.Scene {
     this.add.text(300, 280, '⬛⬛⬛⬛⬛⬛⬛⬛', {
       fontFamily: 'monospace', fontSize: '20px', color: '#444466',
     });
-
     this.add.text(300, 330, '⬛⬛⬛⬛⬛⬛⬛⬛', {
       fontFamily: 'monospace', fontSize: '14px', color: '#333355',
     });
 
-    const text = this.add.text(400, 460, '"Winter is coming... bajate del subte"', {
+    const t = this.add.text(400, 460, '"Winter is coming... bajate del subte"', {
       fontFamily: 'monospace', fontSize: '14px', color: '#4488ff',
     }).setOrigin(0.5);
-
-    this.tweens.add({
-      targets: text, alpha: 0.3, duration: 1500, yoyo: true, repeat: -1,
-    });
+    this.tweens.add({ targets: t, alpha: 0.3, duration: 1500, yoyo: true, repeat: -1 });
   }
 
   update(_time: number, delta: number): void {
     this.timer += delta;
-    if (this.timer >= this.duration) {
-      this.finishLoading();
-    }
+    if (this.timer >= this.duration) this.finishLoading();
   }
 
   private finishLoading(): void {
     musicManager.stop();
-    this.scene.start(this.nextScene, {
-      playerX: this.targetX, playerY: this.targetY,
-    });
+    const data: Record<string, any> = { playerX: this.targetX, playerY: this.targetY };
+    if (this.zone) data.zone = this.zone;
+    this.scene.start(this.nextScene, data);
   }
 }

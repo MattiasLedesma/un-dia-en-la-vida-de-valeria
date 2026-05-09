@@ -1,0 +1,13 @@
+# Prompt para nanobanana: TREN ROCA (escena de carga)
+
+## Prompt:
+pixel art game background, train interior, seats, windows showing landscape passing by, train carriage, 16-bit pixel art, warm colors, nostalgic train vibe, game loading screen background
+
+## Tamaño:
+Pantalla completa (800x600)
+
+## Notas:
+- Interior de un tren
+- Asientos, ventanillas
+- Por la ventana se ve el paisaje pasar
+- Tono: viaje, transición

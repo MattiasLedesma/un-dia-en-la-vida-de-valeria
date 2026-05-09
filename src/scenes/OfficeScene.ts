@@ -4,7 +4,6 @@ import { getDialogue } from '../data/dialogues';
 import { DialogueManager } from '../systems/DialogueManager';
 import { musicManager } from '../systems/MusicManager';
 import type { GameState } from '../systems/BattleSystem';
-import { addPetToParty } from '../systems/BattleSystem';
 
 export class OfficeScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Graphics;
@@ -14,7 +13,7 @@ export class OfficeScene extends Phaser.Scene {
   private state!: GameState;
   private canMove = true;
   private isInDialogue = false;
-  private npcSprites: { id: string; gfx: Phaser.GameObjects.Graphics; tx: number; ty: number; dialogueScene: string; dialogueKey: string; talked: boolean }[] = [];
+  private npcSprites: { id: string; gfx: Phaser.GameObjects.Graphics; tx: number; ty: number; dialogueScene: string; dialogueKey: string }[] = [];
   private encounterZones: { x: number; y: number; zombie: string; done: boolean }[] = [
     { x: 10, y: 4, zombie: 'office_zombie', done: false },
     { x: 18, y: 10, zombie: 'office_zombie', done: false },
@@ -22,6 +21,9 @@ export class OfficeScene extends Phaser.Scene {
   private atunPickups: { x: number; y: number; collected: boolean }[] = [
     { x: 6, y: 4, collected: false },
   ];
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private wasd!: Record<string, Phaser.Input.Keyboard.Key>;
+  private space!: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super({ key: 'OfficeScene' });
@@ -34,6 +36,10 @@ export class OfficeScene extends Phaser.Scene {
       this.registry.set('gameState', this.state);
     }
     this.state.zone = 'allaria';
+
+    this.cursors = this.input.keyboard!.createCursorKeys();
+    this.wasd = this.input.keyboard!.addKeys('W,A,S,D') as Record<string, Phaser.Input.Keyboard.Key>;
+    this.space = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
     musicManager.start('office');
     this.cameras.main.setBackgroundColor('#000000');
@@ -61,8 +67,8 @@ export class OfficeScene extends Phaser.Scene {
     this.drawPlayer();
 
     this.npcSprites = [
-      { id: 'camila', tx: 14, ty: 8, dialogueScene: 'camila_office', dialogueKey: 'start', talked: false, gfx: this.add.graphics() },
-      { id: 'rama_sol', tx: 6, ty: 12, dialogueScene: 'rama_sol_office', dialogueKey: 'start', talked: false, gfx: this.add.graphics() },
+      { id: 'camila', tx: 14, ty: 8, dialogueScene: 'camila_office', dialogueKey: 'start', gfx: this.add.graphics() },
+      { id: 'rama_sol', tx: 6, ty: 12, dialogueScene: 'rama_sol_office', dialogueKey: 'start', gfx: this.add.graphics() },
     ];
 
     this.npcSprites.forEach(n => {
@@ -128,22 +134,23 @@ export class OfficeScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     this.dialogue.update(delta);
-    if (!this.canMove || this.isInDialogue) return;
 
-    const cursors = this.input.keyboard!.createCursorKeys();
-    const wasd = this.input.keyboard!.addKeys('W,A,S,D') as Record<string, Phaser.Input.Keyboard.Key>;
-    const space = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    if (this.isInDialogue) {
+      if (Phaser.Input.Keyboard.JustDown(this.space)) {
+        this.dialogue.advance();
+      }
+      return;
+    }
+
+    if (!this.canMove) return;
 
     let dx = 0, dy = 0;
-    if (cursors.left.isDown || wasd.A.isDown) dx = -1;
-    else if (cursors.right.isDown || wasd.D.isDown) dx = 1;
-    if (cursors.up.isDown || wasd.W.isDown) dy = -1;
-    else if (cursors.down.isDown || wasd.S.isDown) dy = 1;
+    if (this.cursors.left.isDown || this.wasd.A.isDown) dx = -1;
+    else if (this.cursors.right.isDown || this.wasd.D.isDown) dx = 1;
+    if (this.cursors.up.isDown || this.wasd.W.isDown) dy = -1;
+    else if (this.cursors.down.isDown || this.wasd.S.isDown) dy = 1;
 
-    if (dx !== 0 && dy !== 0) {
-      if (Math.random() < 0.5) dy = 0;
-      else dx = 0;
-    }
+    if (dx !== 0 && dy !== 0) { if (Math.random() < 0.5) dy = 0; else dx = 0; }
 
     if (dx !== 0 || dy !== 0) {
       const speed = 2;
@@ -154,23 +161,18 @@ export class OfficeScene extends Phaser.Scene {
       const map = getMapAllaria();
       if (tileY >= 0 && tileY < map.length && tileX >= 0 && tileX < map[0].length) {
         if (!COLLISION_TILES.has(map[tileY][tileX])) {
-          this.playerX = nx;
-          this.playerY = ny;
+          this.playerX = nx; this.playerY = ny;
           this.updatePlayerSprite();
         }
       }
     }
 
-    if (Phaser.Input.Keyboard.JustDown(space)) {
-      if (this.isInDialogue) {
-        this.dialogue.advance();
-      } else {
-        this.checkInteraction();
-      }
+    if (Phaser.Input.Keyboard.JustDown(this.space)) {
+      this.checkInteractions();
     }
   }
 
-  private checkInteraction(): void {
+  private checkInteractions(): void {
     const thresh = TILE * 1.5;
 
     for (const n of this.npcSprites) {
@@ -178,24 +180,16 @@ export class OfficeScene extends Phaser.Scene {
       if (dist < thresh) {
         this.isInDialogue = true;
         this.canMove = false;
-        n.talked = true;
         const line = getDialogue(n.dialogueScene, n.dialogueKey);
         if (line) {
           this.dialogue.show(line, (action) => {
-            if (action === 'close') {
+            if (action && action.startsWith('cami_') || action === 'rama_sol_zombie' || action === 'rama_sol_final') {
+              const l2 = getDialogue(n.dialogueScene, action);
+              if (l2) this.dialogue.show(l2, (act) => { this.isInDialogue = false; this.canMove = true; });
+              else { this.isInDialogue = false; this.canMove = true; }
+            } else {
               this.isInDialogue = false;
               this.canMove = true;
-            } else {
-              const tree = getDialogue(n.dialogueScene, action);
-              if (tree) {
-                this.dialogue.show(tree, (act) => {
-                  this.isInDialogue = false;
-                  this.canMove = true;
-                });
-              } else {
-                this.isInDialogue = false;
-                this.canMove = true;
-              }
             }
           });
         }
@@ -234,15 +228,12 @@ export class OfficeScene extends Phaser.Scene {
       }
     }
 
-    const exitX = 12 * TILE;
-    const exitY = 13 * TILE;
-    const dist = Math.abs(this.playerX - exitX) + Math.abs(this.playerY - exitY);
+    const dist = Math.abs(this.playerX - 12 * TILE) + Math.abs(this.playerY - 13 * TILE);
     if (dist < TILE) {
       musicManager.stop();
       this.scene.start('LoadingScene', {
-        nextScene: 'UADEScene',
-        type: 'subte',
-        targetX: 4 * TILE, targetY: TILE,
+        nextScene: 'OverworldScene', type: 'subte',
+        targetX: 4 * TILE, targetY: 2 * TILE,
       });
     }
   }

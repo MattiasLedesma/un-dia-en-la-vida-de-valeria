@@ -1,0 +1,13 @@
+# Prompt para nanobanana: SUBTE D (escena de carga)
+
+## Prompt:
+pixel art game background, subway tunnel interior, train platform, subway car arriving, dark tunnel, lights, Buenos Aires subway vibe, 16-bit pixel art, blue tones, game loading screen background
+
+## Tamaño:
+Pantalla completa (800x600)
+
+## Notas:
+- Estación de Subte D
+- Túnel oscuro, luces, vías
+- Línea D (azul)
+- Tono: subterráneo, transición

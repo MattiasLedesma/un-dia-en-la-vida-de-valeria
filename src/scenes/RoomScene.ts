@@ -19,6 +19,9 @@ export class RoomScene extends Phaser.Scene {
   private pets: { id: string; gfx: Phaser.GameObjects.Graphics; tx: number; ty: number }[] = [];
   private backpackGfx!: Phaser.GameObjects.Graphics;
   private backpackCollected = false;
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private wasd!: Record<string, Phaser.Input.Keyboard.Key>;
+  private space!: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super({ key: 'RoomScene' });
@@ -30,8 +33,11 @@ export class RoomScene extends Phaser.Scene {
     musicManager.start('room');
     this.cameras.main.setBackgroundColor('#000000');
 
-    const map = createMapData(MAP_ROOM);
+    this.cursors = this.input.keyboard!.createCursorKeys();
+    this.wasd = this.input.keyboard!.addKeys('W,A,S,D') as Record<string, Phaser.Input.Keyboard.Key>;
+    this.space = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
+    const map = createMapData(MAP_ROOM);
     for (let y = 0; y < map.height; y++) {
       for (let x = 0; x < map.width; x++) {
         const tile = map.tiles[y][x];
@@ -73,7 +79,6 @@ export class RoomScene extends Phaser.Scene {
     this.backpackGfx.setPosition(4 * TILE, 9 * TILE);
 
     this.dialogue = new DialogueManager(this);
-
     this.startIntroDialogue();
   }
 
@@ -87,7 +92,7 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private handleDialogueAction(action?: string): void {
-    if (!action) return;
+    if (!action) { this.isInDialogue = false; this.canMove = true; return; }
     if (action === 'start_game') {
       this.isInDialogue = false;
       this.canMove = true;
@@ -97,17 +102,19 @@ export class RoomScene extends Phaser.Scene {
       addPetToParty(this.state, 'rufino');
       addPetToParty(this.state, 'berlioz');
       addPetToParty(this.state, 'bacco');
-    } else if (action === 'close') {
+      return;
+    }
+    if (action === 'close') {
       this.isInDialogue = false;
       this.canMove = true;
+      return;
+    }
+    const line = getDialogue('intro', action);
+    if (line) {
+      this.dialogue.show(line, (a) => this.handleDialogueAction(a));
     } else {
-      const line = getDialogue('intro', action);
-      if (line) {
-        this.dialogue.show(line, (a) => this.handleDialogueAction(a));
-      } else {
-        this.isInDialogue = false;
-        this.canMove = true;
-      }
+      this.isInDialogue = false;
+      this.canMove = true;
     }
   }
 
@@ -160,17 +167,20 @@ export class RoomScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     this.dialogue.update(delta);
 
-    if (!this.canMove || this.isInDialogue) return;
+    if (this.isInDialogue) {
+      if (Phaser.Input.Keyboard.JustDown(this.space)) {
+        this.dialogue.advance();
+      }
+      return;
+    }
 
-    const cursors = this.input.keyboard!.createCursorKeys();
-    const wasd = this.input.keyboard!.addKeys('W,A,S,D') as Record<string, Phaser.Input.Keyboard.Key>;
-    const space = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    if (!this.canMove) return;
 
     let dx = 0, dy = 0;
-    if (cursors.left.isDown || wasd.A.isDown) dx = -1;
-    else if (cursors.right.isDown || wasd.D.isDown) dx = 1;
-    if (cursors.up.isDown || wasd.W.isDown) dy = -1;
-    else if (cursors.down.isDown || wasd.S.isDown) dy = 1;
+    if (this.cursors.left.isDown || this.wasd.A.isDown) dx = -1;
+    else if (this.cursors.right.isDown || this.wasd.D.isDown) dx = 1;
+    if (this.cursors.up.isDown || this.wasd.W.isDown) dy = -1;
+    else if (this.cursors.down.isDown || this.wasd.S.isDown) dy = 1;
 
     if (dx !== 0 && dy !== 0) {
       if (Math.random() < 0.5) dy = 0;
@@ -193,12 +203,8 @@ export class RoomScene extends Phaser.Scene {
       }
     }
 
-    if (Phaser.Input.Keyboard.JustDown(space)) {
+    if (Phaser.Input.Keyboard.JustDown(this.space)) {
       this.checkInteraction();
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(space) && this.isInDialogue) {
-      this.dialogue.advance();
     }
   }
 
@@ -215,7 +221,7 @@ export class RoomScene extends Phaser.Scene {
         const petKey = pet.id === 'rufino' ? 'rufino_intro' : pet.id === 'berlioz' ? 'berlioz_intro' : 'bacco_intro';
         const line = getDialogue('intro', petKey);
         if (line) {
-          this.dialogue.show(line, (action) => this.handleDialogueAction(action));
+          this.dialogue.show(line, (a) => this.handleDialogueAction(a));
         }
         return;
       }
@@ -230,7 +236,7 @@ export class RoomScene extends Phaser.Scene {
         this.canMove = false;
         const line = getDialogue('intro', 'ready');
         if (line) {
-          this.dialogue.show(line, (action) => this.handleDialogueAction(action));
+          this.dialogue.show(line, (a) => this.handleDialogueAction(a));
         }
         return;
       }

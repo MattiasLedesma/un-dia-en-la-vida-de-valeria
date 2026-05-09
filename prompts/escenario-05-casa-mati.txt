@@ -1,0 +1,12 @@
+# Prompt para nanobanana: CASA DE MATI (interior)
+
+## Prompt:
+pixel art game background, top-down cozy apartment living room, gaming setup with computer desk, posters, couch, warm lighting, nerdy but cozy vibe, 16-bit tileable game background, home interior, 32x32 pixel tileset
+
+## Tamaño:
+Tileset 32x32 tiles
+
+## Notas:
+- Es el departamento de Matias
+- Tiene PC gamer, escritorio, ambiente cálido
+- Tono: amoroso, íntimo, "llegaste a casa"

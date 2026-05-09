@@ -1,0 +1,13 @@
+# Prompt para nanobanana: ALLARIA (oficina interior)
+
+## Prompt:
+pixel art game background, top-down office interior, open plan office with desks, chairs, computers, reception area, office plants, water cooler, 16-bit tileable game background, corporate colors, cubicles, 32x32 pixel tileset
+
+## Tamaño:
+Tileset 32x32 tiles
+
+## Notas:
+- Es la oficina de Allaria (ALYC)
+- Tiene escritorios, sillas, computadoras
+- Recepción + área de sistemas
+- Tono: oficina, profesional pero no aburrido

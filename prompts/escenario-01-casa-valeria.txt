@@ -1,0 +1,13 @@
+# Prompt para nanobanana: CASA DE VALERIA (interior habitación)
+
+## Prompt:
+pixel art game background, top-down bedroom interior, cozy bedroom with a bed, desk with computer, posters on walls, warm lighting, 16-bit tileable game background, pastel colors, bedroom floor tiles, 32x32 pixel tileset
+
+## Tamaño:
+Pantalla completa de juego (800x600) o tileset de 32x32 tiles
+
+## Notas:
+- Es la habitación de Valeria
+- Tiene que tener una cama, un escritorio con compu, una mochila en el piso
+- Tono: cálido, hogareño, lindo
+- Vista superior (top-down)

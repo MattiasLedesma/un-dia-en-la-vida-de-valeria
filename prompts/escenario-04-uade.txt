@@ -1,0 +1,12 @@
+# Prompt para nanobanana: UADE (facultad exterior)
+
+## Prompt:
+pixel art game background, top-down university campus, modern buildings, walkways, grass areas, students, entrance with sign "UADE", Buenos Aires city, 16-bit tileable game background, institutional colors, 32x32 pixel tileset
+
+## Tamaño:
+Tileset 32x32 tiles
+
+## Notas:
+- Es la UADE (Universidad Argentina de la Empresa)
+- Edificios modernos, caminos, pasto
+- Tono: universitario, juvenil
