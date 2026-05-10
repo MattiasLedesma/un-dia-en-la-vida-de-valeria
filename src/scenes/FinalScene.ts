@@ -30,44 +30,10 @@ export class FinalScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '16px', color: '#8888aa',
     }).setOrigin(0.5);
 
-    for (let y = 0; y < 15; y++) {
-      for (let x = 0; x < 25; x++) {
-        const g = this.add.graphics();
-        if (y === 0 || y === 14 || x === 0 || x === 24) {
-          g.fillStyle(0x5c4033, 1);
-        } else if (y > 10 && (x > 8 && x < 16)) {
-          g.fillStyle(0xc4a882, 1);
-        } else {
-          g.fillStyle(0xc4a882, 1);
-        }
-        g.fillRect(x * 32, y * 32, 32, 32);
-      }
-    }
+    this.add.image(400, 300, 'bg_casa_mati').setDepth(-10);
 
-    this.add.text(400, 200, 'MATIAS', {
-      fontFamily: 'monospace', fontSize: '11px', color: '#888888',
-    }).setOrigin(0.5);
-
-    const matiGfx = this.add.graphics();
-    matiGfx.fillStyle(0xffccaa, 1);
-    matiGfx.fillCircle(400, 150, 12);
-    matiGfx.fillStyle(0x3366cc, 1);
-    matiGfx.fillRoundedRect(380, 162, 40, 30, 4);
-    matiGfx.fillStyle(0x224488, 1);
-    matiGfx.fillRect(384, 192, 16, 6);
-    matiGfx.fillRect(400, 192, 16, 6);
-    matiGfx.fillStyle(0x000000, 1);
-    matiGfx.fillCircle(394, 148, 2);
-    matiGfx.fillCircle(406, 148, 2);
-    matiGfx.fillStyle(0x333333, 1);
-    matiGfx.fillRect(415, 155, 12, 8);
-
-    const deskGfx = this.add.graphics();
-    deskGfx.fillStyle(0x6b4423, 1);
-    deskGfx.fillRect(370, 200, 60, 8);
-    deskGfx.fillStyle(0x553311, 1);
-    deskGfx.fillRect(370, 208, 5, 30);
-    deskGfx.fillRect(425, 208, 5, 30);
+    const matiSpr = this.add.sprite(400, 160, 'matias');
+    matiSpr.setOrigin(0.5, 1);
 
     this.keyGfx = this.add.graphics();
     this.drawKey(this.keyGfx);

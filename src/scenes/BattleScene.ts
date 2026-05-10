@@ -14,8 +14,8 @@ type BattleButton = {
 export class BattleScene extends Phaser.Scene {
   private state!: GameState;
   private battle!: BattleState;
-  private petGfx!: Phaser.GameObjects.Graphics;
-  private zombieGfx!: Phaser.GameObjects.Graphics;
+  private petSpr!: Phaser.GameObjects.Sprite;
+  private zombieSpr!: Phaser.GameObjects.Sprite;
   private petHpBar!: Phaser.GameObjects.Graphics;
   private zombieHpBar!: Phaser.GameObjects.Graphics;
   private logText!: Phaser.GameObjects.Text;
@@ -68,15 +68,18 @@ export class BattleScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '20px', color: '#ff4444',
     }).setOrigin(0.5);
 
-    this.petGfx = this.add.graphics();
-    this.zombieGfx = this.add.graphics();
+    this.petHpBar = this.add.graphics();
+    this.zombieHpBar = this.add.graphics();
+    
+    // Crear sprites
+    this.petSpr = this.add.sprite(200, 250, 'rufino');
+    this.petSpr.setScale(2);
+    
+    this.zombieSpr = this.add.sprite(600, 250, 'zombie');
+    this.zombieSpr.setScale(2);
 
     this.drawPet();
     this.drawZombie();
-
-    this.petHpBar = this.add.graphics();
-    this.zombieHpBar = this.add.graphics();
-    this.drawHpBars();
 
     this.logText = this.add.text(400, 420, '', {
       fontFamily: 'monospace', fontSize: '12px', color: '#cccccc',
@@ -96,85 +99,66 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawPet(): void {
-    const g = this.petGfx;
-    g.clear();
     if (!this.battle) return;
 
     const pet = this.state.party[this.state.currentPetIndex];
     if (!pet) return;
     const def = PETS[pet.petId];
 
-    g.fillStyle(def.color, 1);
-    g.fillCircle(150, 200, 30);
-    g.fillTriangle(120, 230, 180, 230, 150, 270);
+    this.petSpr.setTexture(pet.petId);
 
-    g.fillStyle(def.secondaryColor, 1);
-    g.fillTriangle(130, 170, 145, 155, 145, 185);
-    g.fillTriangle(170, 170, 155, 155, 155, 185);
-
-    g.fillStyle(0xffffff, 1);
-    g.fillCircle(140, 190, 6);
-    g.fillCircle(160, 190, 6);
-    g.fillStyle(0x000000, 1);
-    g.fillCircle(140, 190, 3);
-    g.fillCircle(160, 190, 3);
-
+    const g = this.petHpBar;
+    g.clear();
     g.fillStyle(0x000000, 0.15);
-    g.fillEllipse(150, 280, 50, 10);
+    g.fillEllipse(200, 310, 80, 15);
 
     g.fillStyle(0xffffff, 1);
-    g.fillRect(125, 147, 50, 8);
+    g.fillRect(175, 147, 50, 8);
     g.fillStyle(0x000000, 1);
-    g.fillRect(130, 148, 40, 6);
+    g.fillRect(180, 148, 40, 6);
     g.fillStyle(0x00cc00, 1);
-    g.fillRect(130, 148, Math.max(0, (this.battle.petHp / this.battle.petMaxHp) * 40), 6);
+    g.fillRect(180, 148, Math.max(0, (this.battle.petHp / this.battle.petMaxHp) * 40), 6);
 
-    this.add.text(150, 138, `${def.name} ❤️${this.battle.petHp}/${this.battle.petMaxHp}`, {
+    this.add.text(200, 138, `${def.name} ❤️${this.battle.petHp}/${this.battle.petMaxHp}`, {
       fontFamily: 'monospace', fontSize: '12px', color: '#ffffff',
     }).setOrigin(0.5);
 
-    this.add.text(150, 300, def.catchPhrase, {
+    this.add.text(200, 330, def.catchPhrase, {
       fontFamily: 'monospace', fontSize: '10px', color: '#888888',
     }).setOrigin(0.5);
   }
 
   private drawZombie(): void {
-    const g = this.zombieGfx;
-    g.clear();
     if (!this.battle) return;
 
     const zDef = ZOMBIES[this.battle.zombieDef];
+    
+    // Si es benja boss, cargamos el sprite de benja
+    if (this.battle.zombieDef === 'benja') {
+        this.zombieSpr.setTexture('benja');
+    }
 
-    g.fillStyle(zDef.color, 1);
-    g.fillCircle(650, 200, 30);
-    g.fillRoundedRect(630, 225, 40, 50, 5);
-
-    g.fillStyle(0x000000, 1);
-    g.fillCircle(635, 190, 5);
-    g.fillCircle(665, 190, 5);
-    g.fillStyle(0xff0000, 0.8);
-    g.fillCircle(635, 190, 2);
-    g.fillCircle(665, 190, 2);
-
+    const g = this.zombieHpBar;
+    g.clear();
     g.fillStyle(0x000000, 0.15);
-    g.fillEllipse(650, 285, 55, 10);
+    g.fillEllipse(600, 310, 80, 15);
 
-    this.add.text(650, 138, `${zDef.name} 🧟`, {
+    this.add.text(600, 138, `${zDef.name} 🧟`, {
       fontFamily: 'monospace', fontSize: '12px', color: '#ff6666',
     }).setOrigin(0.5);
 
     g.fillStyle(0xffffff, 1);
-    g.fillRect(625, 147, 50, 8);
+    g.fillRect(575, 147, 50, 8);
     g.fillStyle(0x000000, 1);
-    g.fillRect(630, 148, 40, 6);
+    g.fillRect(580, 148, 40, 6);
     g.fillStyle(0xcc0000, 1);
-    g.fillRect(630, 148, Math.max(0, (this.battle.zombieHp / this.battle.zombieMaxHp) * 40), 6);
+    g.fillRect(580, 148, Math.max(0, (this.battle.zombieHp / this.battle.zombieMaxHp) * 40), 6);
 
-    this.add.text(650, 157, `❤️${this.battle.zombieHp}/${this.battle.zombieMaxHp}`, {
+    this.add.text(600, 157, `❤️${this.battle.zombieHp}/${this.battle.zombieMaxHp}`, {
       fontFamily: 'monospace', fontSize: '10px', color: '#ff6666',
     }).setOrigin(0.5);
 
-    this.add.text(650, 300, zDef.description, {
+    this.add.text(600, 330, zDef.description, {
       fontFamily: 'monospace', fontSize: '9px', color: '#666666',
     }).setOrigin(0.5);
   }
@@ -383,9 +367,9 @@ export class BattleScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     this.animTimer += delta;
-    if (this.petGfx && this.battle && !this.battle.battleOver) {
-      this.petGfx.setPosition(Math.sin(this.animTimer * 0.003) * 3, 0);
-      this.zombieGfx.setPosition(Math.sin(this.animTimer * 0.003 + Math.PI) * 3, 0);
+    if (this.petSpr && this.battle && !this.battle.battleOver) {
+      this.petSpr.setPosition(200 + Math.sin(this.animTimer * 0.003) * 3, 250);
+      this.zombieSpr.setPosition(600 + Math.sin(this.animTimer * 0.003 + Math.PI) * 3, 250);
     }
   }
 }

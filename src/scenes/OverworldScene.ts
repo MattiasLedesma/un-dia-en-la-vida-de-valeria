@@ -38,7 +38,7 @@ const ZONE_CONFIGS: Record<ZoneConfig, {
 };
 
 export class OverworldScene extends Phaser.Scene {
-  private player!: Phaser.GameObjects.Graphics;
+  private player!: Phaser.GameObjects.Sprite;
   private playerX = 4 * TILE;
   private playerY = TILE;
   private dialogue!: DialogueManager;
@@ -47,9 +47,9 @@ export class OverworldScene extends Phaser.Scene {
   private isInDialogue = false;
   private zone!: ZoneConfig;
   private config!: typeof ZONE_CONFIGS[ZoneConfig];
-  private npcSprites: { id: string; gfx: Phaser.GameObjects.Graphics; tx: number; ty: number; dialogueScene: string; dialogueKey: string }[] = [];
+  private npcSprites: { id: string; sprite: Phaser.GameObjects.Sprite; tx: number; ty: number; dialogueScene: string; dialogueKey: string }[] = [];
   private encounterTilesTriggered = new Set<string>();
-  private activePetSprites: Phaser.GameObjects.Graphics[] = [];
+  private activePetSprites: Phaser.GameObjects.Sprite[] = [];
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<string, Phaser.Input.Keyboard.Key>;
   private space!: Phaser.Input.Keyboard.Key;
@@ -89,35 +89,24 @@ export class OverworldScene extends Phaser.Scene {
     musicManager.start(this.config.music);
     this.cameras.main.setBackgroundColor('#000000');
 
-    const map = createMapData(this.config.map);
-    for (let y = 0; y < map.height; y++) {
-      for (let x = 0; x < map.width; x++) {
-        const tile = map.tiles[y][x];
-        const g = this.add.graphics();
-        g.fillStyle(TILE_COLORS[tile] || 0x000000, 1);
-        g.fillRect(x * TILE, y * TILE, TILE, TILE);
-        if (tile === 3) {
-          g.fillStyle(0x1a3d12, 1);
-          g.fillCircle(x * TILE + 16, y * TILE + 20, 10);
-          g.fillRect(x * TILE + 14, y * TILE + 22, 4, 10);
-        }
-      }
-    }
+    // Fondo
+    this.add.image(400, 300, this.zone === 'guernica' ? 'bg_guernica' : 'bg_uade').setDepth(-10);
 
-    this.drawPlayer();
+    const map = createMapData(this.config.map);
+
+    this.player = this.add.sprite(this.playerX, this.playerY, 'valeria');
+    this.player.setOrigin(0.5, 1);
 
     this.config.npcs.forEach(n => {
-      const g = this.add.graphics();
-      this.drawNPC(g, n.color, n.color2, n.id);
-      g.setPosition(n.tx * TILE, n.ty * TILE);
-      this.npcSprites.push({ gfx: g, ...n });
+      const spr = this.add.sprite(n.tx * TILE, n.ty * TILE, n.id);
+      spr.setOrigin(0.5, 1);
+      this.npcSprites.push({ sprite: spr, ...n });
     });
 
     this.state.party.forEach((_p, i) => {
-      const g = this.add.graphics();
-      this.drawPetMini(g, _p.petId);
-      g.setPosition(this.playerX - 20 + i * 16, this.playerY - 28);
-      this.activePetSprites.push(g);
+      const spr = this.add.sprite(this.playerX - 20 + i * 16, this.playerY - 28, _p.petId);
+      spr.setOrigin(0.5, 1);
+      this.activePetSprites.push(spr);
     });
 
     this.dialogue = new DialogueManager(this);
@@ -152,55 +141,7 @@ export class OverworldScene extends Phaser.Scene {
     }
   }
 
-  private drawPlayer(): void {
-    this.player = this.add.graphics();
-    this.updatePlayerSprite();
-  }
-
-  private updatePlayerSprite(): void {
-    this.player.clear();
-    const p = this.player;
-    p.fillStyle(0xffccaa, 1);
-    p.fillCircle(0, -8, 7);
-    p.fillStyle(0xff69b4, 1);
-    p.fillRoundedRect(-7, -1, 14, 12, 2);
-    p.fillStyle(0xcc5599, 1);
-    p.fillRoundedRect(-7, 11, 6, 8, 1);
-    p.fillRoundedRect(1, 11, 6, 8, 1);
-    p.fillStyle(0x000000, 1);
-    p.fillCircle(-3, -9, 1.5);
-    p.fillCircle(3, -9, 1.5);
-    p.setPosition(this.playerX, this.playerY);
-  }
-
-  private drawNPC(g: Phaser.GameObjects.Graphics, _color: number, _color2: number, id: string): void {
-    g.fillStyle(0xffccaa, 1);
-    g.fillCircle(0, -8, 7);
-    if (id === 'tiziano') {
-      g.fillStyle(0x4488cc, 1);
-      g.fillRoundedRect(-7, -1, 14, 20, 2);
-      g.fillStyle(0x000000, 1);
-      g.fillRect(-4, -4, 8, 3);
-      g.fillStyle(0x333333, 1);
-      g.fillRect(-2, 0, 4, 1);
-    }
-    g.fillStyle(0x000000, 1);
-    g.fillCircle(-3, -9, 1.5);
-    g.fillCircle(3, -9, 1.5);
-  }
-
-  private drawPetMini(g: Phaser.GameObjects.Graphics, petId: string): void {
-    const colors: Record<string, number> = { rufino: 0x888888, berlioz: 0xeeeeee, bacco: 0x8b4513 };
-    const colors2: Record<string, number> = { rufino: 0x333333, berlioz: 0x111111, bacco: 0x000000 };
-    const c = colors[petId] || 0x888888;
-    const c2 = colors2[petId] || 0x333333;
-    g.fillStyle(c, 1);
-    g.fillCircle(0, -4, 5);
-    g.fillTriangle(-6, 0, 6, 0, 0, 6);
-    g.fillStyle(c2, 1);
-    g.fillTriangle(-3, -8, 0, -11, 0, -4);
-    g.fillTriangle(3, -8, 0, -11, 0, -4);
-  }
+  // Se borran drawPlayer, updatePlayerSprite, drawNPC, drawPetMini
 
   update(_time: number, delta: number): void {
     this.dialogue.update(delta);
@@ -232,7 +173,7 @@ export class OverworldScene extends Phaser.Scene {
       if (tileY >= 0 && tileY < map.length && tileX >= 0 && tileX < map[0].length) {
         if (!COLLISION_TILES.has(map[tileY][tileX])) {
           this.playerX = nx; this.playerY = ny;
-          this.updatePlayerSprite();
+          this.player.setPosition(this.playerX, this.playerY);
         }
       }
     }

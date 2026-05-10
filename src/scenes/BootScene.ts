@@ -6,6 +6,29 @@ export class BootScene extends Phaser.Scene {
     super({ key: 'BootScene' });
   }
 
+  preload(): void {
+    // Load sprites
+    this.load.image('valeria', 'sprites/valeria.png');
+    this.load.image('benja', 'sprites/benja.png');
+    this.load.image('camila', 'sprites/camila.png');
+    this.load.image('rama_sol', 'sprites/rama_sol.png');
+    this.load.image('tiziano', 'sprites/tiziano.png');
+    this.load.image('matias', 'sprites/matias.png');
+    this.load.image('zombie', 'sprites/zombie.png');
+    this.load.image('rufino', 'sprites/rufino.png');
+    this.load.image('berlioz', 'sprites/berlioz.png');
+    this.load.image('bacco', 'sprites/bacco.png');
+
+    // Load backgrounds
+    this.load.image('bg_room', 'bgs/room.png');
+    this.load.image('bg_guernica', 'bgs/guernica.png');
+    this.load.image('bg_allaria', 'bgs/allaria.png');
+    this.load.image('bg_uade', 'bgs/uade.png');
+    this.load.image('bg_tren', 'bgs/tren.png');
+    this.load.image('bg_subte', 'bgs/subte.png');
+    this.load.image('bg_casa_mati', 'bgs/casa_mati.png');
+  }
+
   create(): void {
     musicManager.start('boot');
     this.cameras.main.setBackgroundColor('#1a1a2e');

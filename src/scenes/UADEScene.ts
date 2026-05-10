@@ -58,11 +58,7 @@ export class UADEScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '10px', color: '#888888',
     });
 
-    this.drawPlayer();
-
-    const tizianoGfx = this.add.graphics();
-    this.drawTiziano(tizianoGfx);
-    tizianoGfx.setPosition(12 * TILE, 4 * TILE);
+    // Eliminadas llamadas a drawPlayer y drawTiziano
 
     this.dialogue = new DialogueManager(this);
 
@@ -73,40 +69,7 @@ export class UADEScene extends Phaser.Scene {
     });
   }
 
-  private drawPlayer(): void {
-    this.player = this.add.graphics();
-    this.updatePlayerSprite();
-  }
-
-  private updatePlayerSprite(): void {
-    this.player.clear();
-    const p = this.player;
-    p.fillStyle(0xffccaa, 1);
-    p.fillCircle(0, -8, 7);
-    p.fillStyle(0xff69b4, 1);
-    p.fillRoundedRect(-7, -1, 14, 12, 2);
-    p.fillStyle(0xcc5599, 1);
-    p.fillRoundedRect(-7, 11, 6, 8, 1);
-    p.fillRoundedRect(1, 11, 6, 8, 1);
-    p.fillStyle(0x000000, 1);
-    p.fillCircle(-3, -9, 1.5);
-    p.fillCircle(3, -9, 1.5);
-    p.setPosition(this.playerX, this.playerY);
-  }
-
-  private drawTiziano(g: Phaser.GameObjects.Graphics): void {
-    g.fillStyle(0xffccaa, 1);
-    g.fillCircle(0, -8, 7);
-    g.fillStyle(0x4488cc, 1);
-    g.fillRoundedRect(-7, -1, 14, 20, 2);
-    g.fillStyle(0x000000, 1);
-    g.fillRect(-4, -4, 8, 3);
-    g.fillStyle(0x333333, 1);
-    g.fillRect(-2, 0, 4, 1);
-    g.fillStyle(0x000000, 1);
-    g.fillCircle(-3, -9, 1.5);
-    g.fillCircle(3, -9, 1.5);
-  }
+  // se borran drawPlayer, updatePlayerSprite, drawTiziano
 
   private showTip(msg: string): void {
     const t = this.add.text(400, 560, msg, {
@@ -145,7 +108,7 @@ export class UADEScene extends Phaser.Scene {
         if (!COLLISION_TILES.has(map[tileY][tileX])) {
           this.playerX = nx;
           this.playerY = ny;
-          this.updatePlayerSprite();
+          this.player.setPosition(this.playerX, this.playerY);
         }
       }
     }

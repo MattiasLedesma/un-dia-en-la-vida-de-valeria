@@ -6,14 +6,14 @@ import { musicManager } from '../systems/MusicManager';
 import type { GameState } from '../systems/BattleSystem';
 
 export class OfficeScene extends Phaser.Scene {
-  private player!: Phaser.GameObjects.Graphics;
+  private player!: Phaser.GameObjects.Sprite;
   private playerX = 3 * TILE;
   private playerY = 12 * TILE;
   private dialogue!: DialogueManager;
   private state!: GameState;
   private canMove = true;
   private isInDialogue = false;
-  private npcSprites: { id: string; gfx: Phaser.GameObjects.Graphics; tx: number; ty: number; dialogueScene: string; dialogueKey: string }[] = [];
+  private npcSprites: { id: string; sprite: Phaser.GameObjects.Sprite; tx: number; ty: number; dialogueScene: string; dialogueKey: string; gfx?: any }[] = [];
   private encounterZones: { x: number; y: number; zombie: string; done: boolean }[] = [
     { x: 10, y: 4, zombie: 'office_zombie', done: false },
     { x: 18, y: 10, zombie: 'office_zombie', done: false },
@@ -44,37 +44,17 @@ export class OfficeScene extends Phaser.Scene {
     musicManager.start('office');
     this.cameras.main.setBackgroundColor('#000000');
 
+    this.add.image(400, 300, 'bg_allaria').setDepth(-10);
+
     const map = createMapData(getMapAllaria());
-    for (let y = 0; y < map.height; y++) {
-      for (let x = 0; x < map.width; x++) {
-        const tile = map.tiles[y][x];
-        const g = this.add.graphics();
-        g.fillStyle(TILE_COLORS[tile] || 0x000000, 1);
-        g.fillRect(x * TILE, y * TILE, TILE, TILE);
-        if (tile === 11) {
-          g.fillStyle(0x5c3a1e, 1);
-          g.fillRect(x * TILE + 2, y * TILE + 6, TILE - 4, TILE - 6);
-          g.fillStyle(0x8b6914, 1);
-          g.fillRect(x * TILE + 4, y * TILE + 8, TILE - 8, TILE - 10);
-        }
-      }
-    }
 
-    this.add.text(4 * TILE, TILE, 'ALLARIA', {
-      fontFamily: 'monospace', fontSize: '12px', color: '#888888',
-    });
-
-    this.drawPlayer();
+    this.player = this.add.sprite(this.playerX, this.playerY, 'valeria');
+    this.player.setOrigin(0.5, 1);
 
     this.npcSprites = [
-      { id: 'camila', tx: 14, ty: 8, dialogueScene: 'camila_office', dialogueKey: 'start', gfx: this.add.graphics() },
-      { id: 'rama_sol', tx: 6, ty: 12, dialogueScene: 'rama_sol_office', dialogueKey: 'start', gfx: this.add.graphics() },
+      { id: 'camila', tx: 14, ty: 8, dialogueScene: 'camila_office', dialogueKey: 'start', sprite: this.add.sprite(14 * TILE, 8 * TILE, 'camila').setOrigin(0.5, 1) },
+      { id: 'rama_sol', tx: 6, ty: 12, dialogueScene: 'rama_sol_office', dialogueKey: 'start', sprite: this.add.sprite(6 * TILE, 12 * TILE, 'rama_sol').setOrigin(0.5, 1) },
     ];
-
-    this.npcSprites.forEach(n => {
-      this.drawNPC(n.gfx, n.id);
-      n.gfx.setPosition(n.tx * TILE, n.ty * TILE);
-    });
 
     this.atunPickups.forEach(a => {
       if (!a.collected) {
@@ -90,46 +70,6 @@ export class OfficeScene extends Phaser.Scene {
     });
 
     this.dialogue = new DialogueManager(this);
-  }
-
-  private drawPlayer(): void {
-    this.player = this.add.graphics();
-    this.updatePlayerSprite();
-  }
-
-  private updatePlayerSprite(): void {
-    this.player.clear();
-    const p = this.player;
-    p.fillStyle(0xffccaa, 1);
-    p.fillCircle(0, -8, 7);
-    p.fillStyle(0xff69b4, 1);
-    p.fillRoundedRect(-7, -1, 14, 12, 2);
-    p.fillStyle(0xcc5599, 1);
-    p.fillRoundedRect(-7, 11, 6, 8, 1);
-    p.fillRoundedRect(1, 11, 6, 8, 1);
-    p.fillStyle(0x000000, 1);
-    p.fillCircle(-3, -9, 1.5);
-    p.fillCircle(3, -9, 1.5);
-    p.setPosition(this.playerX, this.playerY);
-  }
-
-  private drawNPC(g: Phaser.GameObjects.Graphics, id: string): void {
-    g.fillStyle(0xffccaa, 1);
-    g.fillCircle(0, -8, 7);
-    if (id === 'camila') {
-      g.fillStyle(0x44aa44, 1);
-      g.fillRoundedRect(-7, -1, 14, 20, 2);
-      g.fillStyle(0xcc6600, 1);
-      g.fillRect(-4, -2, 8, 6);
-    } else if (id === 'rama_sol') {
-      g.fillStyle(0x4488cc, 1);
-      g.fillRoundedRect(-9, -1, 8, 20, 2);
-      g.fillStyle(0xcc4488, 1);
-      g.fillRoundedRect(1, -1, 8, 20, 2);
-    }
-    g.fillStyle(0x000000, 1);
-    g.fillCircle(-3, -9, 1.5);
-    g.fillCircle(3, -9, 1.5);
   }
 
   update(_time: number, delta: number): void {
@@ -162,7 +102,7 @@ export class OfficeScene extends Phaser.Scene {
       if (tileY >= 0 && tileY < map.length && tileX >= 0 && tileX < map[0].length) {
         if (!COLLISION_TILES.has(map[tileY][tileX])) {
           this.playerX = nx; this.playerY = ny;
-          this.updatePlayerSprite();
+          this.player.setPosition(this.playerX, this.playerY);
         }
       }
     }
