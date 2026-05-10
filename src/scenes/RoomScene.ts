@@ -51,9 +51,9 @@ export class RoomScene extends Phaser.Scene {
     this.player.setOrigin(0.5, 1);
 
     const petPositions = [
-      { id: 'rufino', tx: 8, ty: 3 },
-      { id: 'berlioz', tx: 2, ty: 8 },
-      { id: 'bacco', tx: 9, ty: 8 },
+      { id: 'rufino', tx: 3, ty: 5 }, // más a la izquierda
+      { id: 'berlioz', tx: 6, ty: 4 }, // en el medio arriba
+      { id: 'bacco', tx: 8, ty: 7 }, // más a la derecha abajo
     ];
 
     petPositions.forEach(p => {
@@ -64,7 +64,7 @@ export class RoomScene extends Phaser.Scene {
 
     this.backpackGfx = this.add.graphics();
     this.drawBackpack(this.backpackGfx);
-    this.backpackGfx.setPosition(4 * TILE, 9 * TILE);
+    this.backpackGfx.setPosition(5 * TILE, 9 * TILE); // más centrada en el cuarto
 
     this.dialogue = new DialogueManager(this);
     this.startIntroDialogue();
